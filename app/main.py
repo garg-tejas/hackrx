@@ -1,0 +1,68 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.routes import router
+from app.config import settings
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+# Create FastAPI app
+app = FastAPI(
+    title="HackRx 6.0 Query System",
+    description="LLM-Powered Intelligent Query-Retrieval System for insurance, legal, HR, and compliance documents",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include API routes
+app.include_router(router, prefix=settings.API_PREFIX)
+
+@app.get("/")
+async def root():
+    """Root endpoint with system information."""
+    return {
+        "message": "HackRx 6.0 LLM-Powered Query-Retrieval System",
+        "version": "1.0.0",
+        "status": "running",
+        "endpoints": {
+            "main": "/api/v1/hackrx/run",
+            "health": "/api/v1/health",
+            "docs": "/docs",
+            "redoc": "/redoc"
+        }
+    }
+
+@app.on_event("startup")
+async def startup_event():
+    """Application startup event."""
+    logging.info("Starting HackRx 6.0 Query System...")
+    logging.info(f"API will be available at http://{settings.API_HOST}:{settings.API_PORT}")
+    logging.info(f"API documentation at http://{settings.API_HOST}:{settings.API_PORT}/docs")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Application shutdown event."""
+    logging.info("Shutting down HackRx 6.0 Query System...")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "app.main:app",
+        host=settings.API_HOST,
+        port=settings.API_PORT,
+        reload=True
+    ) 
