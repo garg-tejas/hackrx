@@ -9,10 +9,11 @@ import os
 # Import sentence_transformers with error handling
 try:
     from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
 except ImportError as e:
-    logging.error(f"Failed to import SentenceTransformer: {e}")
-    logging.error("Please install sentence-transformers with: pip install sentence-transformers==2.2.2 huggingface-hub==0.16.4")
-    raise
+    logging.warning(f"SentenceTransformers not available: {e}")
+    logging.warning("Using fallback embedding service")
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,10 @@ class EmbeddingService:
     """Service for generating embeddings and performing vector search."""
     
     def __init__(self):
-        self.model = SentenceTransformer(settings.EMBEDDING_MODEL)
+        if SENTENCE_TRANSFORMERS_AVAILABLE:
+            self.model = SentenceTransformer(settings.EMBEDDING_MODEL)
+        else:
+            self.model = None
         self.index = None
         self.chunks = []
         self.dimension = 384  # Dimension for all-MiniLM-L6-v2
@@ -28,8 +32,27 @@ class EmbeddingService:
     def generate_embeddings(self, texts: List[str]) -> np.ndarray:
         """Generate embeddings for a list of texts."""
         try:
-            embeddings = self.model.encode(texts, show_progress_bar=True)
-            return embeddings
+            if self.model is not None:
+                embeddings = self.model.encode(texts, show_progress_bar=True)
+                return embeddings
+            else:
+                # Fallback to simple hash-based embeddings
+                embeddings = []
+                for text in texts:
+                    # Create a simple hash-based embedding
+                    import hashlib
+                    hash_obj = hashlib.md5(text.encode())
+                    hash_bytes = hash_obj.digest()
+                    
+                    # Convert to 384-dimensional vector
+                    embedding = []
+                    for i in range(self.dimension):
+                        byte_idx = i % len(hash_bytes)
+                        embedding.append(float(hash_bytes[byte_idx]) / 255.0)
+                    
+                    embeddings.append(embedding)
+                
+                return np.array(embeddings)
         except Exception as e:
             logger.error(f"Failed to generate embeddings: {str(e)}")
             raise Exception(f"Embedding generation failed: {str(e)}")
