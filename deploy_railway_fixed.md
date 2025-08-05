@@ -8,6 +8,13 @@ Railway's free tier has a 4.0 GB image size limit, but our ML models are 6.4 GB.
 
 We'll use a lightweight deployment that downloads models on-demand instead of during build.
 
+## Environment Configuration
+
+The system now uses environment variables for flexible configuration:
+
+- **Local Development**: `API_HOST=127.0.0.1` (default)
+- **Railway Production**: `API_HOST=0.0.0.0` (set in Railway)
+
 ## Step 1: Use Lightweight Requirements
 
 Replace `requirements.txt` with `requirements-light.txt` for deployment:
@@ -36,7 +43,11 @@ GOOGLE_API_KEY=your_google_api_key_here
 PINECONE_API_KEY=your_pinecone_api_key_here
 PINECONE_ENVIRONMENT=your_pinecone_environment_here
 HACKRX_API_TOKEN=018fbf34e584c6effc325d2b54ba468383140299330b71b644cb73775d410be5
+API_HOST=0.0.0.0
+API_PORT=8000
 ```
+
+**Note**: The `API_HOST=0.0.0.0` is crucial for Railway deployment!
 
 ## Step 4: Get Your Webhook URL
 
@@ -72,7 +83,19 @@ Your HackRx 6.0 system is now live and ready for the hackathon!
 
 ## 📝 Notes
 
+- **Local**: Uses `127.0.0.1` by default
+- **Railway**: Uses `0.0.0.0` via environment variable
 - The system will use fallback embeddings if sentence-transformers is not available
 - Models will be downloaded on first use (slower first request)
 - All functionality remains the same
 - The system is fully compatible with the hackathon requirements
+
+## 🔧 Local Development
+
+For local development, just run:
+
+```bash
+python start.py
+```
+
+It will automatically use `127.0.0.1` and be available at `http://127.0.0.1:8000`

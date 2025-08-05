@@ -6,7 +6,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     # API Configuration
-    API_HOST: str = "127.0.0.1"
+    API_HOST: str = "127.0.0.1"  # Default for local development
     API_PORT: int = 8000
     API_PREFIX: str = "/api/v1"
     

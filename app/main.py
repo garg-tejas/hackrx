@@ -46,6 +46,11 @@ async def root():
         }
     }
 
+@app.get("/health")
+async def health():
+    """Simple health check for Railway."""
+    return {"status": "healthy"}
+
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""
@@ -64,5 +69,5 @@ if __name__ == "__main__":
         "app.main:app",
         host=settings.API_HOST,
         port=settings.API_PORT,
-        reload=True
+        reload=False  # Disable reload for production
     ) 
