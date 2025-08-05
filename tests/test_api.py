@@ -50,9 +50,6 @@ class TestAPIEndpoints:
             data = response.json()
             assert "answers" in data
             assert len(data["answers"]) == 2
-            assert "explanations" in data
-            assert "confidence_scores" in data
-            assert "sources" in data
     
     def test_process_queries_missing_documents(self):
         """Test query processing with missing document URL."""
@@ -128,9 +125,6 @@ class TestAPIValidation:
         # Valid response
         valid_response = QueryResponse(
             answers=["30 days"],
-            explanations=["Found in document"],
-            confidence_scores=[0.9],
-            sources=[[{"content": "Grace period is 30 days"}]]
         )
         assert len(valid_response.answers) == 1
         assert valid_response.confidence_scores[0] == 0.9

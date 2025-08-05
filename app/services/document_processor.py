@@ -29,7 +29,7 @@ class DocumentProcessor:
             raise Exception(f"Failed to download document: {str(e)}")
     
     def extract_text_from_pdf(self, pdf_bytes: bytes) -> str:
-        """Extract text content from PDF bytes."""
+        """Extract text content from PDF bytes with validation."""
         try:
             pdf_file = io.BytesIO(pdf_bytes)
             pdf_reader = PyPDF2.PdfReader(pdf_file)
@@ -40,10 +40,59 @@ class DocumentProcessor:
                 if page_text:
                     text += f"\n--- Page {page_num + 1} ---\n{page_text}\n"
             
-            return text.strip()
+            # Clean and validate the extracted text
+            cleaned_text = self.clean_text(text)
+            
+            if not cleaned_text or len(cleaned_text.strip()) < 50:
+                logger.warning("Extracted PDF text is too short or empty")
+                return ""
+            
+            return cleaned_text.strip()
         except Exception as e:
             logger.error(f"Failed to extract text from PDF: {str(e)}")
             raise Exception(f"Failed to parse PDF: {str(e)}")
+    
+    def clean_text(self, text: str) -> str:
+        """Clean and validate extracted text."""
+        if not text:
+            return ""
+        
+        # Remove excessive whitespace
+        text = ' '.join(text.split())
+        
+        # Remove common PDF artifacts
+        import re
+        artifacts = [
+            r'\b\d+\s*obj\b',  # PDF object references
+            r'\bendobj\b',      # PDF end object markers
+            r'\b<<\b',          # PDF dictionary markers
+            r'\b>>\b',          # PDF dictionary end markers
+            r'\b/F\s+\d+\b',    # PDF font references
+            r'\b/Type\s+/[A-Za-z]+\b',  # PDF type references
+            r'\b/Encoding\s+/[A-Za-z]+\b',  # PDF encoding references
+            r'\b/Title\s*\([^)]*\)',  # PDF title markers
+            r'\b/Author\s*\([^)]*\)',  # PDF author markers
+            r'\b/Creator\s*\([^)]*\)',  # PDF creator markers
+        ]
+        
+        for pattern in artifacts:
+            text = re.sub(pattern, '', text)
+        
+        # Remove lines that are mostly special characters
+        lines = text.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if line:
+                # Check if line has meaningful content (not just symbols)
+                alpha_chars = sum(1 for c in line if c.isalpha())
+                total_chars = len(line)
+                
+                if total_chars > 0 and alpha_chars / total_chars > 0.3:
+                    cleaned_lines.append(line)
+        
+        return '\n'.join(cleaned_lines)
     
     def extract_text_from_docx(self, docx_bytes: bytes) -> str:
         """Extract text content from DOCX bytes."""

@@ -181,9 +181,6 @@ class TestQueryProcessor:
                     with patch.object(processor.llm_service, 'generate_answer') as mock_answer:
                         mock_answer.return_value = {
                             "answer": "30 days",
-                            "confidence": 0.9,
-                            "sources": [],
-                            "reasoning": "Found in document"
                         }
                         
                         result = await processor.process_document_queries(document_url, questions)

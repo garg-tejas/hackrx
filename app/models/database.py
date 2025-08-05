@@ -22,7 +22,5 @@ class Query(Base):
     question = Column(Text, nullable=False)
     answer = Column(Text, nullable=False)
     explanation = Column(Text, nullable=True)
-    confidence_score = Column(Float, nullable=True)
-    sources = Column(JSON, nullable=True)
     document_id = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=func.now()) 

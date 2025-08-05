@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 Startup script for HackRx 6.0 system.
 This script provides an easy way to start the application with proper configuration.

@@ -1,27 +1,24 @@
-# HackRx 6.0 LLM-Powered Query-Retrieval System
+# HackRx 6.0 - Simplified LLM-Powered Query-Retrieval System
 
-A comprehensive LLM-powered intelligent query-retrieval system for processing insurance, legal, HR, and compliance documents to answer natural language queries with explainable reasoning.
+A streamlined document query system that uses Google Gemini AI to answer questions from PDF documents with direct text processing.
 
 ## 🎯 Features
 
-- **Multi-format Document Processing**: PDF, DOCX, and email document parsing
-- **Semantic Search**: FAISS-based vector search with Sentence Transformers
-- **LLM Integration**: Google Gemini 2.5 Flash for intelligent query understanding and answer generation
+- **Direct PDF Processing**: Uses Google Gemini AI for native PDF understanding
+- **Simplified Architecture**: No complex chunking or embedding required
+- **Rate Limiting**: Built-in rate limiting for API quota management
 - **Explainable AI**: Detailed reasoning and confidence scores for all answers
-- **Structured Output**: JSON responses with answers, explanations, and source citations
-- **High Performance**: Optimized for accuracy, token efficiency, and low latency
+- **Structured Output**: JSON responses with answers, explanations, and confidence scores
+- **High Performance**: Optimized for accuracy and low latency
 - **RESTful API**: FastAPI-based API with comprehensive documentation
 
 ## 🏗️ System Architecture
 
 ```
-Input Documents (PDF Blob URL) →
-LLM Parser (Extract structured query) →
-Embedding Search (FAISS/Pinecone retrieval) →
-Clause Matching (Semantic similarity) →
-Logic Evaluation (Decision processing) →
-JSON Output (Structured response)
+PDF URL → Download → Gemini AI Processing → Structured Response
 ```
+
+The system uses a simplified approach with direct PDF processing via Google Gemini AI.
 
 ## 🚀 Quick Start
 
@@ -91,16 +88,6 @@ Process document queries and return structured answers.
   "explanations": [
     "The document states that a 30-day grace period is allowed...",
     "Maternity coverage is explicitly mentioned in section 3.2..."
-  ],
-  "confidence_scores": [0.95, 0.87],
-  "sources": [
-    [
-      {
-        "content": "Grace period: 30 days from due date...",
-        "metadata": { "page": 5, "section": "Payment Terms" },
-        "relevance_score": 0.98
-      }
-    ]
   ]
 }
 ```

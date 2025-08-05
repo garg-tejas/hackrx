@@ -49,7 +49,21 @@ async def root():
 @app.get("/health")
 async def health():
     """Simple health check for Railway."""
-    return {"status": "healthy"}
+    return {
+        "status": "healthy",
+        "service": "HackRx 6.0 Query System",
+        "version": "1.0.0",
+    }
+
+@app.get("/api/v1/health")
+async def health_v1():
+    """Health check for Railway with API prefix."""
+    return {
+        "status": "healthy",
+        "service": "HackRx 6.0 Query System", 
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow()
+    }
 
 @app.on_event("startup")
 async def startup_event():

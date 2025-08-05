@@ -32,8 +32,6 @@ class QueryProcessor:
             # Step 3: Process each question
             answers = []
             explanations = []
-            confidence_scores = []
-            sources_list = []
             
             for i, question in enumerate(questions):
                 logger.info(f"Processing question {i+1}/{len(questions)}: {question}")
@@ -49,9 +47,6 @@ class QueryProcessor:
                         # No relevant chunks found
                         answer_data = {
                             "answer": "The information is not available in the provided document.",
-                            "confidence": 0.0,
-                            "sources": [],
-                            "reasoning": "No relevant content found in document."
                         }
                     else:
                         # Generate answer using LLM
@@ -63,8 +58,6 @@ class QueryProcessor:
                     
                     # Store results
                     answers.append(answer_data.get("answer", "Unable to generate answer"))
-                    confidence_scores.append(answer_data.get("confidence", 0.0))
-                    sources_list.append(citations)
                     
                     # Generate explanation if confidence is low
                     if answer_data.get("confidence", 0.0) < 0.7:
@@ -78,18 +71,21 @@ class QueryProcessor:
                         explanations.append(answer_data.get("reasoning", ""))
                     
                 except Exception as e:
-                    logger.error(f"Failed to process question {i+1}: {str(e)}")
-                    answers.append(f"Error processing question: {str(e)}")
-                    confidence_scores.append(0.0)
-                    sources_list.append([])
-                    explanations.append("Processing error occurred")
+                    error_msg = str(e)
+                    logger.error(f"Failed to process question {i+1}: {error_msg}")
+                    
+                    # Handle rate limiting specifically
+                    if "Rate limit" in error_msg or "429" in error_msg:
+                        answers.append("Rate limit exceeded. Please try again in a few minutes.")
+                        explanations.append("API rate limit reached. The system is processing too many requests.")
+                    else:
+                        answers.append(f"Error processing question: {error_msg}")
+                        explanations.append("Processing error occurred")
             
             # Step 4: Return structured response
             response = QueryResponse(
                 answers=answers,
-                explanations=explanations,
-                confidence_scores=confidence_scores,
-                sources=sources_list
+                explanations=explanations
             )
             
             logger.info(f"Successfully processed {len(questions)} questions")
@@ -102,8 +98,6 @@ class QueryProcessor:
             return QueryResponse(
                 answers=error_answers,
                 explanations=["System error occurred"] * len(questions),
-                confidence_scores=[0.0] * len(questions),
-                sources=[[]] * len(questions)
             )
     
     async def process_single_query(self, document_url: str, question: str) -> Dict[str, Any]:
@@ -119,16 +113,11 @@ class QueryProcessor:
             context_chunks = await self.retrieval_service.get_context_for_query(question)
             answer_data = await self.llm_service.generate_answer(question, context_chunks)
             
-            # Get sources
             search_results = await self.retrieval_service.search_relevant_chunks(question)
-            citations = await self.retrieval_service.get_source_citations(search_results)
             
             return {
                 "question": question,
                 "answer": answer_data.get("answer"),
-                "confidence": answer_data.get("confidence"),
-                "sources": citations,
-                "reasoning": answer_data.get("reasoning")
             }
             
         except Exception as e:
@@ -136,9 +125,6 @@ class QueryProcessor:
             return {
                 "question": question,
                 "answer": f"Error: {str(e)}",
-                "confidence": 0.0,
-                "sources": [],
-                "reasoning": "Processing error"
             }
     
     def get_processing_stats(self) -> Dict[str, Any]:
