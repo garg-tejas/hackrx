@@ -26,14 +26,13 @@ The system uses a simplified approach with direct PDF processing via Google Gemi
 
 - Python 3.8+
 - Google API key (for Gemini)
-- Pinecone API key (optional, for cloud vector storage)
 
 ### Installation
 
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/garg-tejas/hackrx
    cd hackrx-system
    ```
 
