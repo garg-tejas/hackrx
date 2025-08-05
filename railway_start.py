@@ -31,7 +31,7 @@ def setup_railway_environment():
     logger.info(f"LLM_MODEL: {os.getenv('LLM_MODEL')}")
     
     # Check required environment variables
-    required_vars = ["GOOGLE_API_KEY", "PINECONE_API_KEY", "PINECONE_ENVIRONMENT"]
+    required_vars = ["GOOGLE_API_KEY"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     
     if missing_vars:
@@ -43,7 +43,7 @@ def setup_railway_environment():
 def start_application():
     """Start the FastAPI application."""
     try:
-        logger.info("Starting HackRx 6.0 Query System...")
+        logger.info("Starting HackRx 6.0 - Simplified PDF Processing...")
         
         # Import and start the app
         import uvicorn

@@ -12,18 +12,7 @@ class Settings(BaseSettings):
     
     # External APIs
     GOOGLE_API_KEY: str
-    PINECONE_API_KEY: str
-    PINECONE_ENVIRONMENT: str
     HACKRX_API_TOKEN: str = "018fbf34e584c6effc325d2b54ba468383140299330b71b644cb73775d410be5"
-    
-    # Database
-    DATABASE_URL: str = "postgresql://user:password@localhost/hackrx"
-    
-    # Processing Configuration
-    CHUNK_SIZE: int = 1000
-    CHUNK_OVERLAP: int = 200
-    MAX_CONTEXT_LENGTH: int = 4000
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
     
     # LLM Configuration
     LLM_MODEL: str = "gemini-2.5-flash"

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.config import settings
 import logging
+from datetime import datetime, timezone
 
 # Configure logging
 logging.basicConfig(
@@ -37,10 +38,11 @@ async def root():
     return {
         "message": "HackRx 6.0 - Simplified PDF Processing",
         "version": "1.0.0",
-        "status": "running",
+        "status": "healthy",
+        "timestamp": "2024-01-01T00:00:00Z",
         "endpoints": {
             "main": "/api/v1/hackrx/run",
-            "health": "/api/v1/health",
+            "health": "/health",
             "docs": "/docs",
             "redoc": "/redoc"
         }
@@ -53,6 +55,7 @@ async def health():
         "status": "healthy",
         "service": "HackRx 6.0 - Simplified PDF Processing",
         "version": "1.0.0",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
     }
 
 @app.get("/api/v1/health")

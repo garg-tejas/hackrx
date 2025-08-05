@@ -12,9 +12,7 @@ from pathlib import Path
 def check_environment():
     """Check if required environment variables are set."""
     required_vars = [
-        'GOOGLE_API_KEY',
-        'PINECONE_API_KEY', 
-        'PINECONE_ENVIRONMENT'
+        'GOOGLE_API_KEY'
     ]
     
     missing_vars = []
@@ -33,7 +31,7 @@ def check_environment():
 
 def main():
     """Main startup function."""
-    print("🚀 Starting HackRx 6.0 LLM-Powered Query-Retrieval System")
+    print("🚀 Starting HackRx 6.0 - Simplified PDF Processing")
     print("=" * 60)
     
     # Check environment
@@ -62,7 +60,7 @@ def main():
             log_level="info"
         )
     except KeyboardInterrupt:
-        print("\n👋 Shutting down HackRx 6.0 system...")
+        print("\n👋 Shutting down HackRx 6.0 - Simplified PDF Processing...")
     except Exception as e:
         print(f"\n❌ Error starting application: {str(e)}")
         sys.exit(1)
