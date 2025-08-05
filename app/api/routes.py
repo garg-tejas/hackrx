@@ -98,8 +98,10 @@ async def get_rate_limit_status(token: str = Depends(verify_token)):
     try:
         # Get rate limit status from the LLM service
         rate_limit_status = query_processor.llm_service.rate_limiter.get_status()
+        key_status = query_processor.llm_service.get_key_status()
         return {
             "rate_limit_status": rate_limit_status,
+            "key_rotation_status": key_status,
             "timestamp": datetime.utcnow()
         }
     except Exception as e:

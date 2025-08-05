@@ -9,7 +9,7 @@ class SimpleQueryProcessor:
     """Simplified query processor using direct PDF processing with Gemini."""
     
     def __init__(self):
-        self.llm_service = SimpleLLMService(api_key=settings.GOOGLE_API_KEY)
+        self.llm_service = SimpleLLMService()  # Will use key rotator
         logger.info("Simple Query Processor initialized")
     
     async def process_queries(self, documents: str, questions: List[str]) -> Dict[str, Any]:

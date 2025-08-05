@@ -8,6 +8,7 @@ import json
 import logging
 from typing import List, Dict, Any, Optional
 from collections import deque
+from app.services.key_rotator import APIKeyRotator
 
 logger = logging.getLogger(__name__)
 
@@ -58,12 +59,22 @@ class SimpleRateLimiter:
 class SimpleLLMService:
     """Simplified LLM service using Gemini's File API for direct PDF processing."""
     
-    def __init__(self, api_key: str):
-        self.client = genai.Client(api_key=api_key)
+    def __init__(self, api_key: str = None):
+        # Initialize key rotator
+        self.key_rotator = APIKeyRotator()
+        
+        # Use provided key or get from rotator
+        if api_key:
+            self.current_key = api_key
+        else:
+            self.current_key = self.key_rotator.get_next_key()
+        
+        # Initialize client with current key
+        self.client = genai.Client(api_key=self.current_key)
         self.model = "gemini-2.5-flash"
         self.rate_limiter = SimpleRateLimiter(max_requests=10, window_seconds=60)
         
-        logger.info(f"Simple LLM Service initialized with {self.model}")
+        logger.info(f"Simple LLM Service initialized with {self.model} and {self.key_rotator.get_key_status()['total_keys']} API keys")
     
     async def download_pdf(self, url: str) -> bytes:
         """Download PDF from URL."""
@@ -100,6 +111,14 @@ class SimpleLLMService:
                     # Acquire rate limit permission
                     await self.rate_limiter.acquire()
                     
+                    # Get a fresh API key for this request
+                    api_key = self.key_rotator.get_available_key()
+                    if api_key and api_key != self.current_key:
+                        # Update client with new key
+                        self.current_key = api_key
+                        self.client = genai.Client(api_key=self.current_key)
+                        logger.debug(f"Rotated to API key: {api_key[:10]}...")
+                    
                     # Generate answer using Gemini with the uploaded PDF
                     response = self.client.models.generate_content(
                         model=self.model,
@@ -119,7 +138,40 @@ class SimpleLLMService:
                     logger.info(f"Successfully processed question {i}")
                     
                 except Exception as e:
-                    logger.error(f"Failed to process question {i}: {str(e)}")
+                    error_str = str(e)
+                    logger.error(f"Failed to process question {i}: {error_str}")
+                    
+                    # Check if it's a rate limit error
+                    if "429" in error_str or "quota" in error_str.lower():
+                        # Mark current key as rate limited
+                        self.key_rotator.mark_key_rate_limited(self.current_key)
+                        logger.warning(f"Rate limit hit for key {self.current_key[:10]}..., trying next key")
+                        
+                        # Try with a different key
+                        try:
+                            new_key = self.key_rotator.get_available_key()
+                            if new_key and new_key != self.current_key:
+                                self.current_key = new_key
+                                self.client = genai.Client(api_key=self.current_key)
+                                logger.info(f"Switched to API key: {new_key[:10]}...")
+                                
+                                # Retry the request
+                                response = self.client.models.generate_content(
+                                    model=self.model,
+                                    contents=[uploaded_file, question]
+                                )
+                                
+                                answer_text = response.text.strip()
+                                result = {
+                                    "question": question,
+                                    "answer": answer_text
+                                }
+                                results.append(result)
+                                logger.info(f"Successfully processed question {i} with rotated key")
+                                continue
+                        except Exception as retry_error:
+                            logger.error(f"Retry also failed: {str(retry_error)}")
+                    
                     results.append({
                         "question": question,
                         "answer": f"Error processing question: {str(e)}",
@@ -153,4 +205,8 @@ class SimpleLLMService:
                 "total_questions": len(questions),
                 "successful_questions": 0
             }
-            return error_response 
+            return error_response
+    
+    def get_key_status(self) -> dict:
+        """Get status of API key rotation."""
+        return self.key_rotator.get_key_status() 
