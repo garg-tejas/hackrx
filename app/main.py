@@ -12,8 +12,8 @@ logging.basicConfig(
 
 # Create FastAPI app
 app = FastAPI(
-    title="HackRx 6.0 Query System",
-    description="LLM-Powered Intelligent Query-Retrieval System for insurance, legal, HR, and compliance documents",
+    title="HackRx 6.0 - Simplified PDF Processing",
+    description="Streamlined document query system using Google Gemini AI for direct PDF processing",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
@@ -35,7 +35,7 @@ app.include_router(router, prefix=settings.API_PREFIX)
 async def root():
     """Root endpoint with system information."""
     return {
-        "message": "HackRx 6.0 LLM-Powered Query-Retrieval System",
+        "message": "HackRx 6.0 - Simplified PDF Processing",
         "version": "1.0.0",
         "status": "running",
         "endpoints": {
@@ -51,7 +51,7 @@ async def health():
     """Simple health check for Railway."""
     return {
         "status": "healthy",
-        "service": "HackRx 6.0 Query System",
+        "service": "HackRx 6.0 - Simplified PDF Processing",
         "version": "1.0.0",
     }
 
@@ -60,22 +60,21 @@ async def health_v1():
     """Health check for Railway with API prefix."""
     return {
         "status": "healthy",
-        "service": "HackRx 6.0 Query System", 
-        "version": "1.0.0",
-        "timestamp": datetime.utcnow()
+        "service": "HackRx 6.0 - Simplified PDF Processing", 
+        "version": "1.0.0"
     }
 
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""
-    logging.info("Starting HackRx 6.0 Query System...")
+    logging.info("Starting HackRx 6.0 - Simplified PDF Processing...")
     logging.info(f"API will be available at http://{settings.API_HOST}:{settings.API_PORT}")
     logging.info(f"API documentation at http://{settings.API_HOST}:{settings.API_PORT}/docs")
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown event."""
-    logging.info("Shutting down HackRx 6.0 Query System...")
+    logging.info("Shutting down HackRx 6.0 - Simplified PDF Processing...")
 
 if __name__ == "__main__":
     import uvicorn
