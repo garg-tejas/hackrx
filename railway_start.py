@@ -22,8 +22,12 @@ def setup_railway_environment():
     
     # Set default values for Railway
     os.environ.setdefault("API_HOST", "0.0.0.0")
-    os.environ.setdefault("API_PORT", "8000")
-    os.environ.setdefault("LLM_MODEL", "gemini-2.0-flash")
+    # Use Railway's PORT environment variable if available
+    if os.getenv("PORT"):
+        os.environ.setdefault("API_PORT", os.getenv("PORT"))
+    else:
+        os.environ.setdefault("API_PORT", "8000")
+    os.environ.setdefault("LLM_MODEL", "gemini-2.5-flash")
     
     # Log environment setup
     logger.info(f"API_HOST: {os.getenv('API_HOST')}")
@@ -56,7 +60,7 @@ def start_application():
             host=settings.API_HOST,
             port=settings.API_PORT,
             log_level="info",
-            reload=False
+            reload=False  # Disable reload for production
         )
         
     except Exception as e:

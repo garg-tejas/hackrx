@@ -38,7 +38,7 @@ def main():
     env_ok = check_environment()
     
     # Get configuration
-    host = os.getenv('API_HOST', '0.0.0.0')
+    host = os.getenv('API_HOST', '127.0.0.1')  # Default to localhost for development
     port = int(os.getenv('API_PORT', '8000'))
     
     print(f"📍 API will be available at: http://{host}:{port}")
@@ -56,7 +56,7 @@ def main():
             "app.main:app",
             host=host,
             port=port,
-            reload=True,
+            reload=True,  # Enable reload for development
             log_level="info"
         )
     except KeyboardInterrupt:

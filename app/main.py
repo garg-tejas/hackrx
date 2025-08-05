@@ -39,16 +39,16 @@ async def root():
         "message": "HackRx 6.0 - Simplified PDF Processing",
         "version": "1.0.0",
         "status": "healthy",
-        "timestamp": "2024-01-01T00:00:00Z",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
         "endpoints": {
             "main": "/api/v1/hackrx/run",
-            "health": "/health",
+            "health": "/api/v1/health",
             "docs": "/docs",
             "redoc": "/redoc"
         }
     }
 
-@app.get("/health")
+@app.get("/api/v1/health")
 async def health():
     """Simple health check for Railway."""
     return {
