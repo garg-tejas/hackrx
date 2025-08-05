@@ -51,16 +51,16 @@ def start_application():
         
         # Import and start the app
         import uvicorn
-        from app.config import settings
         
-        logger.info(f"Starting server on {settings.API_HOST}:{settings.API_PORT}")
+        host = os.getenv("API_HOST", "0.0.0.0")
+        port = int(os.getenv("API_PORT", "8000"))
         
         uvicorn.run(
             "app.main:app",
-            host=settings.API_HOST,
-            port=settings.API_PORT,
+            host=host,
+            port=port,
             log_level="info",
-            reload=False  # Disable reload for production
+            reload=False
         )
         
     except Exception as e:

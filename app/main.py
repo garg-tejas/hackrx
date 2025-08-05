@@ -48,18 +48,9 @@ async def root():
         }
     }
 
+@app.get("/health") 
 @app.get("/api/v1/health")
 async def health():
-    """Simple health check for Railway."""
-    return {
-        "status": "healthy",
-        "service": "HackRx 6.0 - Simplified PDF Processing",
-        "version": "1.0.0",
-        "timestamp": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
-    }
-
-@app.get("/api/v1/health")
-async def health_v1():
     """Health check for Railway with API prefix."""
     return {
         "status": "healthy",

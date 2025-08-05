@@ -112,34 +112,5 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "HackRx 6.0 - Simplified PDF Processing",
-        "timestamp": datetime.utcnow(),
         "processing_method": "Direct PDF processing via Gemini File API"
     }
-
-@router.get("/health/comprehensive")
-async def comprehensive_health_check(token: str = Depends(verify_token)):
-    """Comprehensive health check with detailed system status."""
-    try:
-        # Get rate limit status
-        rate_limit_status = query_processor.llm_service.rate_limiter.get_status()
-        
-        return {
-            "status": "healthy",
-            "service": "HackRx 6.0 - Simplified PDF Processing",
-            "timestamp": datetime.utcnow(),
-            "processing_method": "Direct PDF processing via Gemini File API",
-            "rate_limit_status": rate_limit_status,
-            "features": [
-                "Direct PDF processing",
-                "Gemini File API integration",
-                "Rate limiting",
-                "Async processing"
-            ]
-        }
-    except Exception as e:
-        logger.error(f"Comprehensive health check failed: {str(e)}")
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "timestamp": datetime.utcnow()
-        } 
