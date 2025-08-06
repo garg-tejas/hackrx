@@ -3,11 +3,10 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "python railway_start.py"
-healthcheckPath = "/api/v1/health"
+healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [env]
 API_HOST = "0.0.0.0"
-API_PORT = "8000" 

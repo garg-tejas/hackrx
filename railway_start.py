@@ -22,16 +22,17 @@ def setup_railway_environment():
     
     # Set default values for Railway
     os.environ.setdefault("API_HOST", "0.0.0.0")
-    # Use Railway's PORT environment variable if available
-    if os.getenv("PORT"):
-        os.environ.setdefault("API_PORT", os.getenv("PORT"))
-    else:
-        os.environ.setdefault("API_PORT", "8000")
+    # Use Railway's PORT environment variable
+    port = os.getenv("PORT", "8000")
+    os.environ.setdefault("API_PORT", port)
+    
+    # Set default LLM model
     os.environ.setdefault("LLM_MODEL", "gemini-2.5-flash")
     
     # Log environment setup
     logger.info(f"API_HOST: {os.getenv('API_HOST')}")
     logger.info(f"API_PORT: {os.getenv('API_PORT')}")
+    logger.info(f"PORT (Railway): {os.getenv('PORT')}")
     logger.info(f"LLM_MODEL: {os.getenv('LLM_MODEL')}")
     
     # Check required environment variables
@@ -60,11 +61,14 @@ def start_application():
             host=host,
             port=port,
             log_level="info",
-            reload=False
+            reload=False,
+            access_log=True
         )
         
     except Exception as e:
         logger.error(f"Failed to start application: {str(e)}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -115,12 +115,3 @@ async def get_rate_limit_status(token: str = Depends(verify_token)):
     except Exception as e:
         logger.error(f"Error getting rate limit status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error retrieving rate limit status: {str(e)}")
-
-@router.get("/api/v1/health")
-async def health_check():
-    """Basic health check endpoint."""
-    return {
-        "status": "healthy",
-        "service": "HackRx 6.0 - Simplified PDF Processing",
-        "processing_method": "Direct PDF processing via Gemini File API"
-    }
