@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     
     # LLM Configuration
     LLM_MODEL: str = "gemini-2.5-flash"
-    MAX_TOKENS: int = 1500
+    MAX_TOKENS: int = 5000  # Increased for batch processing
     TEMPERATURE: float = 0.1
     
     class Config:

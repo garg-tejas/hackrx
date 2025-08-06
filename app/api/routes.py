@@ -21,16 +21,18 @@ def get_query_processor():
 @router.post("/hackrx/run", response_model=QueryResponse)
 async def process_queries(request: QueryRequest, token: str = Depends(verify_token)) -> QueryResponse:
     """
-    Main endpoint for processing document queries using direct PDF processing.
+    Main endpoint for processing document queries using BATCH PDF processing.
     
     This endpoint:
     1. Downloads the PDF from the provided URL
     2. Uploads it directly to Gemini using the File API
-    3. Processes each question directly with the PDF
-    4. Returns structured answers with explanations and confidence scores
+    3. Processes ALL questions in a SINGLE batch request to the LLM
+    4. Returns structured answers with improved efficiency
+    
+    OPTIMIZED: Reduces API calls from N to 1 for N questions
     """
     try:
-        logger.info(f"Received query request with {len(request.questions)} questions")
+        logger.info(f"Received BATCH query request with {len(request.questions)} questions")
         
         # Validate request
         if not request.documents:
@@ -39,19 +41,22 @@ async def process_queries(request: QueryRequest, token: str = Depends(verify_tok
         if not request.questions or len(request.questions) == 0:
             raise HTTPException(status_code=400, detail="At least one question is required")
         
-        # Process the queries
+        if len(request.questions) > 20:
+            raise HTTPException(status_code=400, detail="Maximum 20 questions allowed per batch")
+        
+        # Process the queries in BATCH mode
         response = await get_query_processor().process_queries(
             documents=request.documents,
             questions=request.questions
         )
         
-        logger.info(f"Successfully processed {len(request.questions)} questions")
+        logger.info(f"Successfully processed {len(request.questions)} questions in batch mode")
         return response
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error processing queries: {str(e)}")
+        logger.error(f"Error processing batch queries: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.get("/stats")

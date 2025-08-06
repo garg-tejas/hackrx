@@ -13,28 +13,30 @@ class QueryProcessor:
         logger.info("Query Processor initialized")
     
     async def process_queries(self, documents: str, questions: List[str]) -> Dict[str, Any]:
-        """Process queries using direct PDF processing with Gemini File API."""
+        """Process queries using BATCH PDF processing with Gemini File API."""
         try:
-            logger.info(f"Starting document processing for URL: {documents}")
+            logger.info(f"Starting BATCH document processing for URL: {documents}")
+            logger.info(f"Processing {len(questions)} questions in a single LLM call")
             
-            # Process all questions directly with the PDF
+            # Process all questions in BATCH mode with the PDF
             results = await self.llm_service.process_multiple_questions(
                 pdf_url=documents,
                 questions=questions
             )
             
-            logger.info(f"Successfully processed {len(questions)} questions")
+            logger.info(f"Successfully processed {len(questions)} questions in batch mode")
             
             return {
                 "status": "success",
                 "answers": results["answers"],
                 "total_questions": results["total_questions"],
                 "successful_questions": results["successful_questions"],
-                "processing_method": "Direct PDF processing via Gemini File API"
+                "processing_method": "BATCH PDF processing via Gemini File API",
+                "optimization": "Single LLM call for all questions"
             }
             
         except Exception as e:
-            logger.error(f"Failed to process queries: {str(e)}")
+            logger.error(f"Failed to process batch queries: {str(e)}")
             
             # Return error responses for all questions
             error_response = {
@@ -42,7 +44,7 @@ class QueryProcessor:
                 "answers": [f"Processing failed: {str(e)}"] * len(questions),
                 "total_questions": len(questions),
                 "successful_questions": 0,
-                "processing_method": "Direct PDF processing via Gemini File API",
+                "processing_method": "BATCH PDF processing via Gemini File API",
                 "error": str(e)
             }
             
