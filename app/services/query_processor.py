@@ -1,21 +1,21 @@
 import logging
 from typing import List, Dict, Any
-from app.services.simple_llm_service import SimpleLLMService
+from app.services.llm_service import LLMService
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-class SimpleQueryProcessor:
-    """Simplified query processor using direct PDF processing with Gemini."""
+class QueryProcessor:
+    """Query processor using direct PDF processing with Gemini."""
     
     def __init__(self):
-        self.llm_service = SimpleLLMService()  # Will use key rotator
-        logger.info("Simple Query Processor initialized")
+        self.llm_service = LLMService()  # Will use key rotator
+        logger.info("Query Processor initialized")
     
     async def process_queries(self, documents: str, questions: List[str]) -> Dict[str, Any]:
         """Process queries using direct PDF processing with Gemini File API."""
         try:
-            logger.info(f"Starting simple document processing for URL: {documents}")
+            logger.info(f"Starting document processing for URL: {documents}")
             
             # Process all questions directly with the PDF
             results = await self.llm_service.process_multiple_questions(

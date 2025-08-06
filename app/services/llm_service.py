@@ -12,8 +12,8 @@ from app.services.key_rotator import APIKeyRotator
 
 logger = logging.getLogger(__name__)
 
-class SimpleRateLimiter:
-    """Simplified rate limiter for Gemini API."""
+class RateLimiter:
+    """Rate limiter for Gemini API."""
     
     def __init__(self, max_requests: int = 10, window_seconds: int = 60):
         self.max_requests = max_requests
@@ -56,8 +56,8 @@ class SimpleRateLimiter:
             "window_resets_in": max(0, self.window_seconds - (now - active_requests[0])) if active_requests else 0
         }
 
-class SimpleLLMService:
-    """Simplified LLM service using Gemini's File API for direct PDF processing."""
+class LLMService:
+    """LLM service using Gemini's File API for direct PDF processing."""
     
     def __init__(self, api_key: str = None):
         # Initialize key rotator
@@ -72,9 +72,9 @@ class SimpleLLMService:
         # Initialize client with current key
         self.client = genai.Client(api_key=self.current_key)
         self.model = "gemini-2.5-flash"
-        self.rate_limiter = SimpleRateLimiter(max_requests=10, window_seconds=60)
+        self.rate_limiter = RateLimiter(max_requests=10, window_seconds=60)
         
-        logger.info(f"Simple LLM Service initialized with {self.model} and {self.key_rotator.get_key_status()['total_keys']} API keys")
+        logger.info(f"LLM Service initialized with {self.model} and {self.key_rotator.get_key_status()['total_keys']} API keys")
     
     async def download_pdf(self, url: str) -> bytes:
         """Download PDF from URL."""
@@ -87,20 +87,24 @@ class SimpleLLMService:
             logger.error(f"Failed to download PDF from {url}: {str(e)}")
             raise Exception(f"Failed to download PDF: {str(e)}")
     
+    async def upload_pdf_to_gemini(self, pdf_content: bytes) -> Any:
+        """Upload PDF to Gemini with current API key."""
+        pdf_io = io.BytesIO(pdf_content)
+        uploaded_file = self.client.files.upload(
+            file=pdf_io,
+            config=dict(mime_type='application/pdf')
+        )
+        logger.info(f"PDF uploaded to Gemini with key {self.current_key[:10]}...")
+        return uploaded_file
+
     async def process_pdf_with_gemini(self, pdf_url: str, questions: List[str]) -> List[Dict[str, Any]]:
         """Process PDF directly with Gemini using File API."""
         try:
-            # Download PDF
+            # Download PDF once
             pdf_content = await self.download_pdf(pdf_url)
-            pdf_io = io.BytesIO(pdf_content)
             
             # Upload PDF to Gemini using File API
-            uploaded_file = self.client.files.upload(
-                file=pdf_io,
-                config=dict(mime_type='application/pdf')
-            )
-            
-            logger.info(f"PDF uploaded to Gemini successfully")
+            uploaded_file = await self.upload_pdf_to_gemini(pdf_content)
             
             # Process each question
             results = []
@@ -117,7 +121,10 @@ class SimpleLLMService:
                         # Update client with new key
                         self.current_key = api_key
                         self.client = genai.Client(api_key=self.current_key)
-                        logger.debug(f"Rotated to API key: {api_key[:10]}...")
+                        logger.info(f"Rotated to API key: {api_key[:10]}...")
+                        
+                        # CRITICAL: Re-upload PDF with new API key
+                        uploaded_file = await self.upload_pdf_to_gemini(pdf_content)
                     
                     # Generate answer using Gemini with the uploaded PDF
                     response = self.client.models.generate_content(
@@ -154,6 +161,9 @@ class SimpleLLMService:
                                 self.current_key = new_key
                                 self.client = genai.Client(api_key=self.current_key)
                                 logger.info(f"Switched to API key: {new_key[:10]}...")
+                                
+                                # CRITICAL: Re-upload PDF with new API key
+                                uploaded_file = await self.upload_pdf_to_gemini(pdf_content)
                                 
                                 # Retry the request
                                 response = self.client.models.generate_content(

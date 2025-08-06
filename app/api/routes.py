@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.models.schemas import QueryRequest, QueryResponse
-from app.services.simple_query_processor import SimpleQueryProcessor
+from app.services.query_processor import QueryProcessor
 from app.api.auth import verify_token
 from datetime import datetime
 import logging
@@ -8,8 +8,15 @@ import logging
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Global query processor instance
-query_processor = SimpleQueryProcessor()
+# Global query processor instance (lazy initialization)
+query_processor = None
+
+def get_query_processor():
+    """Get or create the query processor instance."""
+    global query_processor
+    if query_processor is None:
+        query_processor = QueryProcessor()
+    return query_processor
 
 @router.post("/hackrx/run", response_model=QueryResponse)
 async def process_queries(request: QueryRequest, token: str = Depends(verify_token)) -> QueryResponse:
@@ -32,8 +39,8 @@ async def process_queries(request: QueryRequest, token: str = Depends(verify_tok
         if not request.questions or len(request.questions) == 0:
             raise HTTPException(status_code=400, detail="At least one question is required")
         
-        # Process the queries using simplified approach
-        response = await query_processor.process_queries(
+        # Process the queries
+        response = await get_query_processor().process_queries(
             documents=request.documents,
             questions=request.questions
         )
@@ -76,7 +83,7 @@ async def test_single_query(request: QueryRequest, token: str = Depends(verify_t
         if len(request.questions) != 1:
             raise HTTPException(status_code=400, detail="Test endpoint requires exactly one question")
         
-        result = await query_processor.process_queries(
+        result = await get_query_processor().process_queries(
             documents=request.documents,
             questions=request.questions
         )
@@ -97,8 +104,9 @@ async def get_rate_limit_status(token: str = Depends(verify_token)):
     """Get current rate limit status."""
     try:
         # Get rate limit status from the LLM service
-        rate_limit_status = query_processor.llm_service.rate_limiter.get_status()
-        key_status = query_processor.llm_service.get_key_status()
+        processor = get_query_processor()
+        rate_limit_status = processor.llm_service.rate_limiter.get_status()
+        key_status = processor.llm_service.get_key_status()
         return {
             "rate_limit_status": rate_limit_status,
             "key_rotation_status": key_status,
