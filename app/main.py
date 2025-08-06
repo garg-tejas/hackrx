@@ -4,6 +4,7 @@ from app.api.routes import router
 from app.config import settings
 import logging
 import os
+import traceback
 from datetime import datetime, timezone
 
 # Configure logging
@@ -60,11 +61,21 @@ async def health():
 @app.on_event("startup")
 async def startup_event():
     """Application startup event."""
-    logging.info("Starting HackRx 6.0 - Simplified PDF Processing...")
-    host = os.getenv("API_HOST", settings.API_HOST)
-    port = os.getenv("PORT", str(settings.API_PORT))
-    logging.info(f"API will be available at http://{host}:{port}")
-    logging.info(f"API documentation at http://{host}:{port}/docs")
+    try:
+        logging.info("Starting HackRx 6.0 - Simplified PDF Processing...")
+        host = os.getenv("API_HOST", settings.API_HOST)
+        port = os.getenv("PORT", str(settings.API_PORT))
+        logging.info(f"API will be available at http://{host}:{port}")
+        logging.info(f"API documentation at http://{host}:{port}/docs")
+        
+        # Check if Google API key is set
+        if not settings.GOOGLE_API_KEY:
+            logging.warning("GOOGLE_API_KEY not set - some features may not work")
+        else:
+            logging.info("GOOGLE_API_KEY is configured")
+    except Exception as e:
+        logging.error(f"Startup warning: {str(e)}")
+        # Don't fail startup on configuration issues
 
 @app.on_event("shutdown")
 async def shutdown_event():

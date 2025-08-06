@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     API_PREFIX: str = "/api/v1"
     
-    # External APIs
+    # External APIs - Make optional to allow startup without them
     GOOGLE_API_KEY: str = ""
     GOOGLE_API_KEY_2: str = ""  # Optional second API key
     HACKRX_API_TOKEN: str = "018fbf34e584c6effc325d2b54ba468383140299330b71b644cb73775d410be5"
