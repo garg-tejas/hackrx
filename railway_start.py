@@ -1,4 +1,3 @@
-
 """
 Railway-specific startup script for the HackRx API.
 This script ensures proper environment configuration and startup.
@@ -22,9 +21,15 @@ def setup_railway_environment():
     
     # Set default values for Railway
     os.environ.setdefault("API_HOST", "0.0.0.0")
-    # Use Railway's PORT environment variable
-    port = os.getenv("PORT", "8000")
-    os.environ.setdefault("API_PORT", port)
+    
+    # Use Railway's PORT environment variable - this is critical
+    railway_port = os.getenv("PORT")
+    if railway_port:
+        logger.info(f"Railway PORT detected: {railway_port}")
+        os.environ["API_PORT"] = railway_port
+    else:
+        logger.warning("No Railway PORT found, using default 8000")
+        os.environ.setdefault("API_PORT", "8000")
     
     # Set default LLM model
     os.environ.setdefault("LLM_MODEL", "gemini-2.5-flash")
@@ -35,7 +40,7 @@ def setup_railway_environment():
     logger.info(f"PORT (Railway): {os.getenv('PORT')}")
     logger.info(f"LLM_MODEL: {os.getenv('LLM_MODEL')}")
     
-    # Check required environment variables
+    # Check required environment variables but don't fail on missing ones
     required_vars = ["GOOGLE_API_KEY"]
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     
@@ -56,13 +61,18 @@ def start_application():
         host = os.getenv("API_HOST", "0.0.0.0")
         port = int(os.getenv("API_PORT", "8000"))
         
+        logger.info(f"About to start server on {host}:{port}")
+        
+        # Add timeout and more Railway-friendly settings
         uvicorn.run(
             "app.main:app",
             host=host,
             port=port,
             log_level="info",
             reload=False,
-            access_log=True
+            access_log=True,
+            timeout_keep_alive=30,
+            loop="asyncio"
         )
         
     except Exception as e:
@@ -79,4 +89,4 @@ if __name__ == "__main__":
     setup_railway_environment()
     
     # Start application
-    start_application() 
+    start_application()
