@@ -53,7 +53,7 @@ async def root():
 async def health():
     """Health check for Railway with API prefix."""
     return {
-        "status": "healthy"
+        "status": "ok"
     }
 
 @app.on_event("startup")
