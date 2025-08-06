@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.config import settings
 import logging
+import os
 from datetime import datetime, timezone
 
 # Configure logging
@@ -60,8 +61,10 @@ async def health():
 async def startup_event():
     """Application startup event."""
     logging.info("Starting HackRx 6.0 - Simplified PDF Processing...")
-    logging.info(f"API will be available at http://{settings.API_HOST}:{settings.API_PORT}")
-    logging.info(f"API documentation at http://{settings.API_HOST}:{settings.API_PORT}/docs")
+    host = os.getenv("API_HOST", settings.API_HOST)
+    port = os.getenv("PORT", str(settings.API_PORT))
+    logging.info(f"API will be available at http://{host}:{port}")
+    logging.info(f"API documentation at http://{host}:{port}/docs")
 
 @app.on_event("shutdown")
 async def shutdown_event():
